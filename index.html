@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Census county API</title>
+
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header-container">
+      <h2>County data mapper</h2>
+      <p>This app uses the <a href="http://api.census.gov/">Census API</a> to display county-level choropleth maps.</p>
+      <select class="demo-dropdown">
+        <option selected disabled>Pick a demographic</option>
+        <option value="total_pop">Total population</option>
+        <option value="poverty">Poverty</option>
+        <option value="hs_grad">High school diploma</option>
+        <option value="non_white">Non-white</option>
+      </select>
+      <form class="search-container">
+        <p>Search for a county</p>
+        <input type="text" class="county-search" name="county-search">
+      </form>
+      <div class="toggle-container">
+        <p>Show bubbles</p>
+        <label class="switch">
+          <input type="checkbox">
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="map-container"></div>
+    <div class="gradient-bar"></div>
+    <div class="gradient-separations-container">
+      <div class="separations"></div>
+      <div class="separations"></div>
+      <div class="separations"></div>
+      <div class="separations"></div>
+    </div>
+  </div>
+    <script type="text/javascript" src="js/vendor/jquery-3.0.0.min.js"></script>
+    <script type="text/javascript" src="js/vendor/d3.v3.min.js"></script>
+  	<script type="text/javascript" src="js/vendor/queue.v1.min.js"></script>
+  	<script type="text/javascript" src="js/vendor/topojson.v1.min.js"></script>
+    <script type="text/javascript" src="js/app.js"></script>
+</body>
+</html>
