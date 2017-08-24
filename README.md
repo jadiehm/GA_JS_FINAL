@@ -14,7 +14,7 @@ The goal of this app is to make calls to the Census API, return county-level dem
 
 This project will follow the requirements outlined [here](https://github.com/ga-students/JS-NYC-6.27.17/blob/master/projects/final-project/final-project.md)
 
-##Project to-dos
+## Project to-dos
 
 1. ~~Make AJAX calls to get total population data by county and initial demographic data~~
 2. ~~Draw D3 county map~~
