@@ -13,3 +13,13 @@ The goal of this app is to make calls to the Census API, return county-level dem
 ## Technical requirements
 
 This project will follow the requirements outlined [here](https://github.com/ga-students/JS-NYC-6.27.17/blob/master/projects/final-project/final-project.md)
+
+##Project to-dos
+
+1. ~~Make AJAX calls to get total population data by county and initial demographic data~~
+2. ~~Draw D3 county map~~
+3. ~~Color map based on demographic data~~
+4. Set up dropdown and pass value variable to AJAX call to pull corresponding demographic data
+5. Tie county data points to tooltip on hover and align tooltip to left or right depending on X position
+6. Hookup search so that users can quickly find a county
+7. If time, create toggle for proportional bubble map instead of choropleth coloring

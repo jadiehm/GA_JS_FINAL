@@ -108,7 +108,7 @@ $(document).ready(function() {
               .projection(projection);
 
           //Attach tooltips
-          var div = d3.select("body").append("div")
+          var tooltip = d3.select("body").append("div")
   		      .attr("class", "tooltip")
   		      .style("opacity", 0);
 
@@ -135,7 +135,8 @@ $(document).ready(function() {
           		 .data(topojson.feature(us, us.objects.counties).features)
           		 .enter().append("path")
           		 .attr("d", path)
-
+               .on("mouseover", App.countyMouseover)
+               .on("mouseout", App.countyMouseout);
 
             //Add states
             svgMap.append("g")
@@ -143,9 +144,10 @@ $(document).ready(function() {
          		   .selectAll("path")
          		   .data(topojson.feature(us, us.objects.states).features)
          		   .enter().append("path")
-         		   .attr("d", path)
+         		   .attr("d", path);
           }
 
+          //RESPONSIVENESS
           d3.select(window).on('resize', resize);
 
           function resize() {
@@ -162,7 +164,7 @@ $(document).ready(function() {
 
             svgMap
                 .style('width', newWidth + 'px')
-                .style('height', newHeight + 'px')
+                .style('height', newHeight + 'px');
 
             svgMap.selectAll('path').attr('d', path);
           }
@@ -177,7 +179,48 @@ $(document).ready(function() {
                 return d3.interpolate('#ffffd4', '#993404')(demoLookup[fixedId]['percentage']);
             }
               // console.log()
-            })
+            });
+        },
+        countyMouseover: function(demoLookup) {
+          //Moves selction to front
+        	d3.selection.prototype.moveToFront = function() {
+        			return this.each(function(){
+          		this.parentNode.appendChild(this);
+        			});
+        	};
+          var sel = d3.select(this);
+          sel.moveToFront();
+          sel
+            .transition().duration(100)
+            .style({'stroke': '#262626', 'stroke-width': 2});
+          //tooltip
+          var tooltip = d3.select(".tooltip")
+
+          tooltip
+            .transition().duration(100)
+            .style({'opacity': 1, 'left': (d3.event.pageX) + "px", 'top': (d3.event.pageY) + "px"});
+          tooltip
+            .html("<p>ADD TEXT HERE</p>");
+        },
+        countyMouseout: function(demoLookup) {
+          //Moves selction to back
+        	d3.selection.prototype.moveToBack = function() {
+          		return this.each(function() {
+              	var firstChild = this.parentNode.firstChild;
+              	if (firstChild) {
+                  	this.parentNode.insertBefore(this, firstChild);
+              	}
+          		});
+        	};
+          var sel = d3.select(this);
+  			  sel.moveToBack();
+          sel
+		        .transition().duration(100)
+		        .style({'stroke': 'white', 'stroke-width': 0.5});
+          //tooltip
+          var tooltip = d3.select(".tooltip")
+            .transition().duration(100)
+            .style({'opacity': 0});
         }
     };
 

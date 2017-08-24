@@ -37,6 +37,24 @@ body {
   stroke-width: 0.5px;
 }
 
+.tooltip {
+		position: fixed;
+		text-align: left;
+		padding: 10px;
+		font-family: sans-serif;
+		font-size: 13px;
+		line-height: 16px;
+		pointer-events: none;
+		color: #262626;
+		opacity: 0;
+		background-color: #ffffff;
+		border: 1px solid #bebebe;
+	}
+
+.tooltip p {
+  margin: 0;
+}
+
 .switch {
   position: relative;
   display: inline-block;
