@@ -16,7 +16,8 @@ $(document).ready(function() {
           C18120_006E: "Percent unemployed",
           C18130_001E: "Percent in poverty",
           B05002_013E: "Percent foreign born"
-        }
+        },
+        COUNTIES: null
     };
 
     var App = {
@@ -27,7 +28,7 @@ $(document).ready(function() {
         requestCensusData: function() {
           var yearCollected = 2015;
           var datasetName = "acs5";
-          var tableTotalPop = "B00001_001E"; //Total unweighted pop
+          var tableTotalPop = "B02001_001E"; //Total unweighted pop
           var tableDemo = "B02001_002E"; //Dropdown demographic
           var geography = "county:*";
           var query_url_total = CONSTANTS.BASE_URL + yearCollected + "/" + datasetName + "?get=NAME," + tableTotalPop + "&for=" + geography + "&key=" + CONSTANTS.API_KEY;
@@ -38,26 +39,51 @@ $(document).ready(function() {
           var totalPopulationData = [];
           var demoData = [];
 
+          var demoLookup = {};
+
+
           return $.when(
             //Make the initial call for the total population
             $.ajax(query_url_total, {
               dataType: "json",
               success: function(response) {
+                response.forEach(function(item, i) {
+                  if(i) {
+                    var countyFips = item[2] + item[3];
+                    var countyStateArray = item[0].split(', ')
+                    demoLookup[countyFips] = {
+                      totalPop: item[1],
+                      stateName: countyStateArray[1],
+                      countyName: countyStateArray[0]
+                    }
+                  }
+                })
+
+                //console.log(demoLookup)
+
+                //Make the call for the other variable
+                $.ajax(query_url_demo, {
+                  dataType: "json",
+                  success: function(response) {
+                    response.forEach(function(item, i) {
+                      if(i) {
+                        var countyFips = item[2] + item[3];
+                        demoLookup[countyFips]["demo"] = item[1];
+                        demoLookup[countyFips]["percentage"] = (demoLookup[countyFips]["demo"]/demoLookup[countyFips]["totalPop"]);
+                      }
+                    })
+                    App.colorMap(demoLookup);
+                    //Push the response into the totalPolation array for comparison later
+                    //demoData.push(response);
+                    //console.log("demo", demoData);
+                  },
+                  error: function(error) {
+                    console.log(error);
+                  }
+                })
                 //Push the response into the totalPolation array for comparison later
-                totalPopulationData.push(response);
-                console.log("total", totalPopulationData);
-              },
-              error: function(error) {
-                console.log(error);
-              }
-            }),
-            //Make the call for the other variable
-            $.ajax(query_url_demo, {
-              dataType: "json",
-              success: function(response) {
-                //Push the response into the totalPolation array for comparison later
-                demoData.push(response);
-                console.log("demo", demoData);
+                //totalPopulationData.push(response);
+                //console.log("total", totalPopulationData);
               },
               error: function(error) {
                 console.log(error);
@@ -103,12 +129,13 @@ $(document).ready(function() {
           //Append map
           function appendMap(error, us) {
             //Add counties
-            svgMap.append("g")
+            CONSTANTS.COUNTIES = svgMap.append("g")
           		 .attr("class", "county")
           		 .selectAll("path")
           		 .data(topojson.feature(us, us.objects.counties).features)
           		 .enter().append("path")
           		 .attr("d", path)
+
 
             //Add states
             svgMap.append("g")
@@ -139,6 +166,18 @@ $(document).ready(function() {
 
             svgMap.selectAll('path').attr('d', path);
           }
+        },
+        colorMap: function(demoLookup) {
+          CONSTANTS.COUNTIES
+            .style("fill", function(d) {
+              // return color(demoLookup)
+              var id = d.id.toString();
+              var fixedId = id.length === 5 ? id : "0" + id;
+              if (fixedId in demoLookup) {
+                return d3.interpolate('#ffffd4', '#993404')(demoLookup[fixedId]['percentage']);
+            }
+              // console.log()
+            })
         }
     };
 
