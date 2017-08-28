@@ -7,34 +7,61 @@ $(document).ready(function() {
     var CONSTANTS = {
         API_KEY: "6d83e90a07eca747afdf37e4c9e3c4e9fe4bd341",
         BASE_URL: "https://api.census.gov/data/",
-        TABLE_KEY: {
-          B00001_001E: "Total population",
-          B02001_002E: "Percentage white",
-          B02001_003E: "Percentage black",
-          B03001_003E: "Percent Hispanic",
-          B16010_015E: "Percent with high school degree",
-          C18120_006E: "Percent unemployed",
-          C18130_001E: "Percent in poverty",
-          B05002_013E: "Percent foreign born"
-        },
+        TABLE_KEY: [
+          {
+            "tableID": "B02001_002E",
+            "tableTitle": "Percent white"
+          },
+          {
+            "tableID": "B02001_003E",
+            "tableTitle": "Percent black"
+          },
+          {
+            "tableID": "B03001_003E",
+            "tableTitle": "Percent Hispanic"
+          }
+        ],
         COUNTIES: null
     };
 
     var App = {
         init: function() {
-          App.requestCensusData();
+          //App.requestCensusData();
           App.drawCountyMap();
+          App.appendDropDown();
+          App.bindEvents();
         },
-        requestCensusData: function() {
+        bindEvents: function() {
+          //Change map on dropdown
+          $(".demo-dropdown").change(function() {
+            var $dropDownOption = $(".demo-dropdown").val();
+            var chosenDemoData = _.findWhere(CONSTANTS.TABLE_KEY, {tableTitle: $dropDownOption})
+
+            App.requestCensusData(chosenDemoData.tableID)
+          })
+        },
+        appendDropDown: function() {
+          var dropDown = d3.select(".demo-dropdown")
+          var tableTitleNames = _.pluck(CONSTANTS.TABLE_KEY, 'tableTitle');
+
+          //Append the disabled prompt text
+          tableTitleNames.unshift("Pick a demographic");
+
+          dropDown.selectAll("option")
+            .data(tableTitleNames)
+            .enter()
+            .append("option")
+            .text(function(d) { return d; })
+            .attr("value", function(d) { return d; })
+        },
+        requestCensusData: function(tableDemo) {
           var yearCollected = 2015;
           var datasetName = "acs5";
           var tableTotalPop = "B02001_001E"; //Total unweighted pop
-          var tableDemo = "B02001_002E"; //Dropdown demographic
+          var tableDemo = tableDemo; //Dropdown demographic
           var geography = "county:*";
           var query_url_total = CONSTANTS.BASE_URL + yearCollected + "/" + datasetName + "?get=NAME," + tableTotalPop + "&for=" + geography + "&key=" + CONSTANTS.API_KEY;
           var query_url_demo = CONSTANTS.BASE_URL + yearCollected + "/" + datasetName + "?get=NAME," + tableDemo + "&for=" + geography + "&key=" + CONSTANTS.API_KEY;
-          console.log(query_url_total);
-          console.log(query_url_demo);
 
           var totalPopulationData = [];
           var demoData = [];
@@ -59,8 +86,6 @@ $(document).ready(function() {
                   }
                 })
 
-                //console.log(demoLookup)
-
                 //Make the call for the other variable
                 $.ajax(query_url_demo, {
                   dataType: "json",
@@ -73,17 +98,12 @@ $(document).ready(function() {
                       }
                     })
                     App.colorMap(demoLookup);
-                    //Push the response into the totalPolation array for comparison later
-                    //demoData.push(response);
-                    //console.log("demo", demoData);
+                    //console.log(demoLookup)
                   },
                   error: function(error) {
                     console.log(error);
                   }
                 })
-                //Push the response into the totalPolation array for comparison later
-                //totalPopulationData.push(response);
-                //console.log("total", totalPopulationData);
               },
               error: function(error) {
                 console.log(error);
@@ -176,53 +196,57 @@ $(document).ready(function() {
               var id = d.id.toString();
               var fixedId = id.length === 5 ? id : "0" + id;
               if (fixedId in demoLookup) {
-                return d3.interpolate('#ffffd4', '#993404')(demoLookup[fixedId]['percentage']);
+                return d3.interpolate('#d0d1e6', '#016450')(demoLookup[fixedId]['percentage']);
             }
               // console.log()
             });
         },
         countyMouseover: function(demoLookup) {
-          //Moves selction to front
-        	d3.selection.prototype.moveToFront = function() {
-        			return this.each(function(){
-          		this.parentNode.appendChild(this);
-        			});
-        	};
-          var sel = d3.select(this);
-          sel.moveToFront();
-          sel
-            .transition().duration(100)
-            .style({'stroke': '#262626', 'stroke-width': 2});
-          //tooltip
-          var tooltip = d3.select(".tooltip")
+          CONSTANTS.COUNTIES
+            .on("mouseover", function() {
+              d3.selection.prototype.moveToFront = function() {
+            			return this.each(function(){
+              		this.parentNode.appendChild(this);
+            			});
+            	};
+              var sel = d3.select(this);
+              sel.moveToFront();
+              sel
+                .transition().duration(100)
+                .style({'stroke': '#262626', 'stroke-width': 2});
+              //tooltip
+              var tooltip = d3.select(".tooltip")
 
-          tooltip
-            .transition().duration(100)
-            .style({'opacity': 1, 'left': (d3.event.pageX) + "px", 'top': (d3.event.pageY) + "px"});
-          tooltip
-            .html("<p>ADD TEXT HERE</p>");
+              tooltip
+                .transition().duration(100)
+                .style({'opacity': 1, 'left': (d3.event.pageX) + "px", 'top': (d3.event.pageY) + "px"});
+
+              tooltip
+                .html("<p>ADD DATA HERE</p>");
+            })
         },
         countyMouseout: function(demoLookup) {
-          //Moves selction to back
-        	d3.selection.prototype.moveToBack = function() {
-          		return this.each(function() {
-              	var firstChild = this.parentNode.firstChild;
-              	if (firstChild) {
-                  	this.parentNode.insertBefore(this, firstChild);
-              	}
-          		});
-        	};
-          var sel = d3.select(this);
-  			  sel.moveToBack();
-          sel
-		        .transition().duration(100)
-		        .style({'stroke': 'white', 'stroke-width': 0.5});
-          //tooltip
-          var tooltip = d3.select(".tooltip")
-            .transition().duration(100)
-            .style({'opacity': 0});
+          CONSTANTS.COUNTIES
+            .on("mouseout", function() {
+              d3.selection.prototype.moveToBack = function() {
+              		return this.each(function() {
+                  	var firstChild = this.parentNode.firstChild;
+                  	if (firstChild) {
+                      	this.parentNode.insertBefore(this, firstChild);
+                  	}
+              		});
+            	};
+              var sel = d3.select(this);
+      			  sel.moveToBack();
+              sel
+    		        .transition().duration(100)
+    		        .style({'stroke': 'white', 'stroke-width': 0.5});
+              //tooltip
+              var tooltip = d3.select(".tooltip")
+                .transition().duration(100)
+                .style({'opacity': 0});
+            })
         }
     };
-
     App.init();
 });

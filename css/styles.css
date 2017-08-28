@@ -48,7 +48,7 @@ body {
 		color: #262626;
 		opacity: 0;
 		background-color: #ffffff;
-		border: 1px solid #bebebe;
+		border: 1px solid #262626;
 	}
 
 .tooltip p {
@@ -127,10 +127,10 @@ input:checked + .slider:before {
   height: 15px;
   margin-top: 20px;
   position: relative;
-  background: -webkit-linear-gradient(left, #ffffb2, #bd0026); /* For Safari 5.1 to 6.0 */
-  background: -o-linear-gradient(right, #ffffb2, #bd0026); /* For Opera 11.1 to 12.0 */
-  background: -moz-linear-gradient(right, #ffffb2, #bd0026); /* For Firefox 3.6 to 15 */
-  background: linear-gradient(to right, #ffffb2, #bd0026); /* Standard syntax */
+  background: -webkit-linear-gradient(left, #d0d1e6, #016450); /* For Safari 5.1 to 6.0 */
+  background: -o-linear-gradient(right, #d0d1e6, #016450); /* For Opera 11.1 to 12.0 */
+  background: -moz-linear-gradient(right, #d0d1e6, #016450); /* For Firefox 3.6 to 15 */
+  background: linear-gradient(to right, #d0d1e6, #016450); /* Standard syntax */
 }
 .gradient-separations-container {
   width: 100%;
