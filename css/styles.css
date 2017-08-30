@@ -172,3 +172,6 @@ input:checked + .slider:before {
     margin-right: 30px;
     float: left;
 }
+.bolded {
+  font-weight: bold;
+}

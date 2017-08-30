@@ -24,6 +24,9 @@ $(document).ready(function() {
         COUNTIES: null
     };
 
+    var demoLookup;
+    var isHoverable = false;
+
     var App = {
         init: function() {
           //App.requestCensusData();
@@ -36,6 +39,7 @@ $(document).ready(function() {
           $(".demo-dropdown").change(function() {
             var $dropDownOption = $(".demo-dropdown").val();
             var chosenDemoData = _.findWhere(CONSTANTS.TABLE_KEY, {tableTitle: $dropDownOption})
+            isHoverable = true;
 
             App.requestCensusData(chosenDemoData.tableID)
           })
@@ -66,16 +70,16 @@ $(document).ready(function() {
           var totalPopulationData = [];
           var demoData = [];
 
-          var demoLookup = {};
+          demoLookup = {};
 
 
-          return $.when(
+          return (
             //Make the initial call for the total population
             $.ajax(query_url_total, {
               dataType: "json",
               success: function(response) {
                 response.forEach(function(item, i) {
-                  if(i) {
+                  // if (i) {
                     var countyFips = item[2] + item[3];
                     var countyStateArray = item[0].split(', ')
                     demoLookup[countyFips] = {
@@ -83,9 +87,8 @@ $(document).ready(function() {
                       stateName: countyStateArray[1],
                       countyName: countyStateArray[0]
                     }
-                  }
+                  // }
                 })
-
                 //Make the call for the other variable
                 $.ajax(query_url_demo, {
                   dataType: "json",
@@ -98,7 +101,6 @@ $(document).ready(function() {
                       }
                     })
                     App.colorMap(demoLookup);
-                    //console.log(demoLookup)
                   },
                   error: function(error) {
                     console.log(error);
@@ -197,37 +199,37 @@ $(document).ready(function() {
               var fixedId = id.length === 5 ? id : "0" + id;
               if (fixedId in demoLookup) {
                 return d3.interpolate('#d0d1e6', '#016450')(demoLookup[fixedId]['percentage']);
-            }
-              // console.log()
+              }
             });
         },
-        countyMouseover: function(demoLookup) {
-          CONSTANTS.COUNTIES
-            .on("mouseover", function() {
-              d3.selection.prototype.moveToFront = function() {
-            			return this.each(function(){
-              		this.parentNode.appendChild(this);
-            			});
-            	};
-              var sel = d3.select(this);
-              sel.moveToFront();
-              sel
-                .transition().duration(100)
-                .style({'stroke': '#262626', 'stroke-width': 2});
-              //tooltip
-              var tooltip = d3.select(".tooltip")
+        countyMouseover: function(e) {
+          if (isHoverable) {
+            var countyId = e.id;
+                d3.selection.prototype.moveToFront = function() {
+                    return this.each(function(){
+                    this.parentNode.appendChild(this);
+                    });
+                };
+                var sel = d3.select(this);
+                sel.moveToFront();
+                sel
+                  .transition().duration(100)
+                  .style({'stroke': '#262626', 'stroke-width': 2});
+                //tooltip
+                var tooltip = d3.select(".tooltip")
 
-              tooltip
-                .transition().duration(100)
-                .style({'opacity': 1, 'left': (d3.event.pageX) + "px", 'top': (d3.event.pageY) + "px"});
+                tooltip
+                  .transition().duration(100)
+                  .style({'opacity': 1, 'left': (d3.event.pageX) + "px", 'top': (d3.event.pageY) + "px"});
 
-              tooltip
-                .html("<p>ADD DATA HERE</p>");
-            })
+                if (demoLookup && demoLookup[countyId]) {
+                  tooltip
+                    .html("<p class='bolded'>" + demoLookup[countyId]["countyName"] + ",</p><p class='bolded'>" + demoLookup[countyId]["stateName"] + "</p><p>" + (demoLookup[countyId]['percentage']*100).toFixed(1) + "%</p>");
+                }
+          }
         },
         countyMouseout: function(demoLookup) {
           CONSTANTS.COUNTIES
-            .on("mouseout", function() {
               d3.selection.prototype.moveToBack = function() {
               		return this.each(function() {
                   	var firstChild = this.parentNode.firstChild;
@@ -245,8 +247,7 @@ $(document).ready(function() {
               var tooltip = d3.select(".tooltip")
                 .transition().duration(100)
                 .style({'opacity': 0});
-            })
-        }
+            }
     };
     App.init();
 });
