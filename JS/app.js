@@ -21,7 +21,8 @@ $(document).ready(function() {
             "tableTitle": "Percent Hispanic"
           }
         ],
-        COUNTIES: null
+        COUNTIES: null,
+        BUBBLES: null
     };
 
     var demoLookup;
@@ -42,7 +43,8 @@ $(document).ready(function() {
             isHoverable = true;
 
             App.requestCensusData(chosenDemoData.tableID)
-          })
+          });
+          //Switch to bubble map
         },
         appendDropDown: function() {
           var dropDown = d3.select(".demo-dropdown")
@@ -145,28 +147,37 @@ $(document).ready(function() {
 
           //Load in data
           queue()
-		        .defer(d3.json, "data/us.json")
+		        .defer(d3.json, "data/us2.json")
 		        .await(appendMap);
 
           //Append map
           function appendMap(error, us) {
             //Add counties
             CONSTANTS.COUNTIES = svgMap.append("g")
-          		 .attr("class", "county")
           		 .selectAll("path")
           		 .data(topojson.feature(us, us.objects.counties).features)
           		 .enter().append("path")
           		 .attr("d", path)
+               .attr("class", "county")
+               .attr("id", function(d) { return 'state' + Math.floor(d.id / 1000)})
                .on("mouseover", App.countyMouseover)
                .on("mouseout", App.countyMouseout);
 
             //Add states
-            svgMap.append("g")
-         		   .attr("class", "state")
-         		   .selectAll("path")
-         		   .data(topojson.feature(us, us.objects.states).features)
-         		   .enter().append("path")
-         		   .attr("d", path);
+            svgMap.append("path")
+              .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
+              .attr("class", "state")
+              .attr("d", path);
+
+            //Add circles
+            CONSTANTS.BUBBLES = svgMap.append("g")
+              .selectAll("circle")
+              .data(topojson.feature(us, us.objects.counties).features)
+              .enter().append("circle")
+              .attr("class", function(d) { return "bubble " + d.id })
+              .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+              .attr("r", 1)
+              .style("display", "none");
           }
 
           //RESPONSIVENESS
@@ -192,15 +203,33 @@ $(document).ready(function() {
           }
         },
         colorMap: function(demoLookup) {
+
           CONSTANTS.COUNTIES
             .style("fill", function(d) {
-              // return color(demoLookup)
               var id = d.id.toString();
               var fixedId = id.length === 5 ? id : "0" + id;
               if (fixedId in demoLookup) {
                 return d3.interpolate('#d0d1e6', '#016450')(demoLookup[fixedId]['percentage']);
               }
             });
+          //MOVE CODE TO APPROPRIATE BLOCK!!
+          // CONSTANTS.BUBBLES
+          //   .attr("r", function(d) {
+          //     var id = d.id.toString();
+          //     var fixedId = id.length === 5 ? id : "0" + id;
+          //     if (fixedId in demoLookup) {
+          //       return (demoLookup[fixedId]['percentage'] * 5);
+          //     }
+          //   })
+          //   .style("stroke", function(d) {
+          //     var id = d.id.toString();
+          //     var fixedId = id.length === 5 ? id : "0" + id;
+          //     if (fixedId in demoLookup) {
+          //       return d3.interpolate('#d0d1e6', '#016450')(demoLookup[fixedId]['percentage']);
+          //     }
+          //   })
+          //   .style("fill", "transparent")
+          //   .style("display", "block");
         },
         countyMouseover: function(e) {
           if (isHoverable) {
@@ -212,15 +241,25 @@ $(document).ready(function() {
                 };
                 var sel = d3.select(this);
                 sel.moveToFront();
+                //Highlight county
                 sel
                   .transition().duration(100)
                   .style({'stroke': '#262626', 'stroke-width': 2});
+                //Highlight state
+                var thisState = Math.floor(e.id /1000)
+                d3.selectAll('path:not(#state' + thisState + ')').style('opacity', .5);
+
                 //tooltip
                 var tooltip = d3.select(".tooltip")
 
+                var right = d3.event.pageX > window.innerWidth/2;
+                var offset = right ? tooltip.node().offsetWidth + 5 : 0;
+
                 tooltip
                   .transition().duration(100)
-                  .style({'opacity': 1, 'left': (d3.event.pageX) + "px", 'top': (d3.event.pageY) + "px"});
+                  .style('opacity', 1)
+                  .style('left', (d3.event.pageX - offset) + "px")
+                  .style('top', (d3.event.pageY + 10) + "px");
 
                 if (demoLookup && demoLookup[countyId]) {
                   tooltip
@@ -228,8 +267,8 @@ $(document).ready(function() {
                 }
           }
         },
-        countyMouseout: function(demoLookup) {
-          CONSTANTS.COUNTIES
+        countyMouseout: function(e) {
+          var countyId = e.id;
               d3.selection.prototype.moveToBack = function() {
               		return this.each(function() {
                   	var firstChild = this.parentNode.firstChild;
@@ -240,14 +279,18 @@ $(document).ready(function() {
             	};
               var sel = d3.select(this);
       			  sel.moveToBack();
+              //Dehighlight county
               sel
     		        .transition().duration(100)
     		        .style({'stroke': 'white', 'stroke-width': 0.5});
+              //Dehighlight state
+              var thisState = Math.floor(e.id / 1000)
+    			    d3.selectAll('path:not(#state' + thisState + ')').style('opacity', 1);
               //tooltip
               var tooltip = d3.select(".tooltip")
                 .transition().duration(100)
                 .style({'opacity': 0});
             }
-    };
+        };
     App.init();
 });
