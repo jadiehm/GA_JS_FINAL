@@ -17,8 +17,32 @@ $(document).ready(function() {
             "tableTitle": "Percent black"
           },
           {
+            "tableID": "B02001_005E",
+            "tableTitle": "Percent Asian"
+          },
+          {
             "tableID": "B03001_003E",
             "tableTitle": "Percent Hispanic"
+          },
+          {
+            "tableID": "B06008_004E",
+            "tableTitle": "Percent divorced"
+          },
+          {
+            "tableID": "B06008_025E",
+            "tableTitle": "Percent foreign born"
+          },
+          {
+            "tableID": "B06012_002E",
+            "tableTitle": "Percent below 100% of poverty level"
+          },
+          {
+            "tableID": "B06009_002E",
+            "tableTitle": "Percent with less than a H.S. diploma"
+          },
+          {
+            "tableID": "B09001_001E",
+            "tableTitle": "Percent under 18"
           }
         ],
         COUNTIES: null,
@@ -64,9 +88,7 @@ $(document).ready(function() {
               CONSTANTS.BUBBLES
                 .style("display", "none");
 
-              //App.colorMap();
-
-                //CONSTANTS.COUNTIES
+              App.colorMap(demoLookup);
             }
           });
         },
@@ -200,10 +222,13 @@ $(document).ready(function() {
               .selectAll("circle")
               .data(topojson.feature(us, us.objects.counties).features)
               .enter().append("circle")
-              .attr("class", function(d) { return "bubble " + d.id })
+              .attr("class", "bubble")
               .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
               .attr("r", 1)
-              .style("display", "none");
+              .attr("id", function(d) { return _.uniqueId('bubble')})
+              .style("display", "none")
+              .on("mouseover", App.bubbleMouseover)
+              .on("mouseout", App.bubbleMouseout);
 
           }
 
@@ -275,7 +300,7 @@ $(document).ready(function() {
         //   console.log(matchedCounties);
         // },
         countyMouseover: function(e) {
-          if (isHoverable) {
+          if (isHoverable == true && $('.switch').hasClass('noBubble')) {
             var countyId = e.id;
                 d3.selection.prototype.moveToFront = function() {
                     return this.each(function(){
@@ -309,6 +334,58 @@ $(document).ready(function() {
                     .html("<p class='bolded'>" + demoLookup[countyId]["countyName"] + ",</p><p class='bolded'>" + demoLookup[countyId]["stateName"] + "</p><p>" + (demoLookup[countyId]['percentage']*100).toFixed(1) + "%</p>");
                 }
           }
+        },
+        bubbleMouseover: function(e) {
+          if (isHoverable == true && $('.switch').hasClass('bubble')) {
+            var countyId = e.id;
+                d3.selection.prototype.moveToFront = function() {
+                    return this.each(function(){
+                    this.parentNode.appendChild(this);
+                    });
+                };
+                var sel = d3.select(this);
+                sel.moveToFront();
+                //Highlight bubble
+                var thisBubble = $(this).attr('id')
+                d3.selectAll('circle:not(#' + thisBubble + ')').style('opacity', 0.3);
+
+                //tooltip
+                var tooltip = d3.select(".tooltip")
+
+                var right = d3.event.pageX > window.innerWidth/2;
+                var offset = right ? tooltip.node().offsetWidth + 5 : 0;
+
+                tooltip
+                  .transition().duration(100)
+                  .style('opacity', 1)
+                  .style('left', (d3.event.pageX - offset) + "px")
+                  .style('top', (d3.event.pageY + 10) + "px");
+
+                if (demoLookup && demoLookup[countyId]) {
+                  tooltip
+                    .html("<p class='bolded'>" + demoLookup[countyId]["countyName"] + ",</p><p class='bolded'>" + demoLookup[countyId]["stateName"] + "</p><p>" + (demoLookup[countyId]['percentage']*100).toFixed(1) + "%</p>");
+                }
+          }
+        },
+        bubbleMouseout: function(e) {
+          var countyId = e.id;
+              d3.selection.prototype.moveToBack = function() {
+              		return this.each(function() {
+                  	var firstChild = this.parentNode.firstChild;
+                  	if (firstChild) {
+                      	this.parentNode.insertBefore(this, firstChild);
+                  	}
+              		});
+            	};
+              var sel = d3.select(this);
+      			  sel.moveToBack();
+              //Dehighlight bubble
+              var thisBubble = Math.floor(e.id / 1000)
+    			    d3.selectAll('circle:not(#bubble' + thisBubble + ')').style('opacity', 1);
+              //tooltip
+              var tooltip = d3.select(".tooltip")
+                .transition().duration(100)
+                .style({'opacity': 0});
         },
         countyMouseout: function(e) {
           var countyId = e.id;
