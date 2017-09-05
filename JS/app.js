@@ -26,6 +26,7 @@ $(document).ready(function() {
     };
 
     var demoLookup;
+    var countyNames;
     var isHoverable = false;
 
     var App = {
@@ -43,8 +44,31 @@ $(document).ready(function() {
             isHoverable = true;
 
             App.requestCensusData(chosenDemoData.tableID)
+            $('.toggle-container').css("opacity", 1);
           });
           //Switch to bubble map
+          $('.toggle-container').on('click', '.switch', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            if ($('.switch').hasClass('noBubble')) {
+              $('.switch').removeClass('noBubble');
+              $('.switch').addClass('bubble');
+              App.bubbleMap();
+
+              App.uncolorMap();
+              //CONSTANTS.COUNTIES
+                //.style("fill", "#f2f2f2");
+            } else {
+              $('.switch').removeClass('bubble');
+              $('.switch').addClass('noBubble');
+              CONSTANTS.BUBBLES
+                .style("display", "none");
+
+              //App.colorMap();
+
+                //CONSTANTS.COUNTIES
+            }
+          });
         },
         appendDropDown: function() {
           var dropDown = d3.select(".demo-dropdown")
@@ -69,11 +93,7 @@ $(document).ready(function() {
           var query_url_total = CONSTANTS.BASE_URL + yearCollected + "/" + datasetName + "?get=NAME," + tableTotalPop + "&for=" + geography + "&key=" + CONSTANTS.API_KEY;
           var query_url_demo = CONSTANTS.BASE_URL + yearCollected + "/" + datasetName + "?get=NAME," + tableDemo + "&for=" + geography + "&key=" + CONSTANTS.API_KEY;
 
-          var totalPopulationData = [];
-          var demoData = [];
-
           demoLookup = {};
-
 
           return (
             //Make the initial call for the total population
@@ -89,8 +109,10 @@ $(document).ready(function() {
                       stateName: countyStateArray[1],
                       countyName: countyStateArray[0]
                     }
+
                   // }
                 })
+
                 //Make the call for the other variable
                 $.ajax(query_url_demo, {
                   dataType: "json",
@@ -102,7 +124,11 @@ $(document).ready(function() {
                         demoLookup[countyFips]["percentage"] = (demoLookup[countyFips]["demo"]/demoLookup[countyFips]["totalPop"]);
                       }
                     })
-                    App.colorMap(demoLookup);
+                    if ($('.switch').hasClass('noBubble')) {
+                      App.colorMap(demoLookup);
+                    } else {
+                      App.bubbleMap(demoLookup);
+                    }
                   },
                   error: function(error) {
                     console.log(error);
@@ -178,6 +204,7 @@ $(document).ready(function() {
               .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
               .attr("r", 1)
               .style("display", "none");
+
           }
 
           //RESPONSIVENESS
@@ -203,34 +230,50 @@ $(document).ready(function() {
           }
         },
         colorMap: function(demoLookup) {
-
+          if ($('.switch').hasClass('noBubble')) {
+            CONSTANTS.COUNTIES
+              .style("fill", function(d) {
+                var id = d.id.toString();
+                var fixedId = id.length === 5 ? id : "0" + id;
+                if (fixedId in demoLookup) {
+                  return d3.interpolate('#d0d1e6', '#016450')(demoLookup[fixedId]['percentage']);
+                }
+              });
+          }
+        },
+        uncolorMap: function(demoLookup) {
           CONSTANTS.COUNTIES
-            .style("fill", function(d) {
+            .style("fill", "#f2f2f2")
+        },
+        bubbleMap: function() {
+          CONSTANTS.BUBBLES
+            .attr("r", function(d) {
+              var id = d.id.toString();
+              var fixedId = id.length === 5 ? id : "0" + id;
+              if (fixedId in demoLookup) {
+                return (demoLookup[fixedId]['percentage'] * 5);
+              }
+            })
+            .style("stroke", function(d) {
               var id = d.id.toString();
               var fixedId = id.length === 5 ? id : "0" + id;
               if (fixedId in demoLookup) {
                 return d3.interpolate('#d0d1e6', '#016450')(demoLookup[fixedId]['percentage']);
               }
-            });
-          //MOVE CODE TO APPROPRIATE BLOCK!!
-          // CONSTANTS.BUBBLES
-          //   .attr("r", function(d) {
-          //     var id = d.id.toString();
-          //     var fixedId = id.length === 5 ? id : "0" + id;
-          //     if (fixedId in demoLookup) {
-          //       return (demoLookup[fixedId]['percentage'] * 5);
-          //     }
-          //   })
-          //   .style("stroke", function(d) {
-          //     var id = d.id.toString();
-          //     var fixedId = id.length === 5 ? id : "0" + id;
-          //     if (fixedId in demoLookup) {
-          //       return d3.interpolate('#d0d1e6', '#016450')(demoLookup[fixedId]['percentage']);
-          //     }
-          //   })
-          //   .style("fill", "transparent")
-          //   .style("display", "block");
+            })
+            .style("fill", "transparent")
+            .style("display", "block");
         },
+        // searchCounties: function() {
+        //   if (!_.isObject(demoLookup)) { return; }
+        //   var userSearch = $('.county-search').val();
+        //   userSearch = $.trim(userSearch);
+        //   var countyNames = _.pluck(demoLookup, "countyName");
+        //   var matchedCounties = _.filter(countyNames, function(countyName) {
+        //     return fuzzysearch(userSearch, countyName)
+        //   });
+        //   console.log(matchedCounties);
+        // },
         countyMouseover: function(e) {
           if (isHoverable) {
             var countyId = e.id;

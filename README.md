@@ -21,8 +21,8 @@ This project will follow the requirements outlined [here](https://github.com/ga-
 2. ~~Draw D3 county map~~
 3. ~~Color map based on demographic data~~
 4. ~~Set up dropdown and pass value variable to AJAX call to pull corresponding demographic data~~
-5. Add in more demographic variables
+5. Add in more demographic variables (IN PROGRESS)
 6. ~~Tie county data points to tooltip on hover and align tooltip to left or right depending on X position~~
-7. Hookup search so that users can quickly find a county (wade.js?)
-8. ~~Draw circles~~
-8. If time, create toggle for proportional bubble map instead of choropleth coloring
+7. ~~Draw circles~~
+8. If time, create toggle for proportional bubble map instead of choropleth coloring (IN PROGESS: need to troubleshoot getting back to colored map)
+9. Hook up search for counties (ABANDONED FOR PROJECT DEADLINE)

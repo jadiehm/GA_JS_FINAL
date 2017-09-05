@@ -9,7 +9,7 @@
   <div class="wrapper">
     <div class="header-container">
       <h2>County data mapper</h2>
-      <p>This app uses the <a href="http://api.census.gov/">Census API</a> to display county-level choropleth maps.</p>
+      <p>This app uses the <a href="http://api.census.gov/">Census API</a> to display county-level choropleth and porportional bubble maps.</p>
       <select class="demo-dropdown">
         <option selected disabled>Pick a demographic</option>
       </select>
@@ -19,8 +19,8 @@
       </form>
       <div class="toggle-container">
         <p>Show bubbles</p>
-        <label class="switch">
-          <input type="checkbox">
+        <label class="switch noBubble">
+          <input disabled type="checkbox">
           <span class="slider round"></span>
         </label>
       </div>
@@ -41,7 +41,7 @@
   	<script type="text/javascript" src="js/vendor/queue.v1.min.js"></script>
   	<script type="text/javascript" src="js/vendor/topojson.v1.min.js"></script>
     <script type="text/javascript" src="js/vendor/underscore.min.js"></script>
-    <script type="text/javascript" src="js/vendor/wade.min.js"></script>
+    <script type="text/javascript" src="js/vendor/fuzzysearch.js"></script>
     <script type="text/javascript" src="js/app.js"></script>
 </body>
 </html>
