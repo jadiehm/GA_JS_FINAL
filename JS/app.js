@@ -252,6 +252,8 @@ $(document).ready(function() {
                 .style('height', newHeight + 'px');
 
             svgMap.selectAll('path').attr('d', path);
+
+            svgMap.selectAll('circle').attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; });
           }
         },
         colorMap: function(demoLookup) {
